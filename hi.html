@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Universe & Adventures</title>
+    <style>
+        /* --- THEME SETTINGS --- */
+        :root {
+            --bg-deep: #050505;
+            --bg-card: #121212;
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a0;
+            --glow: 0 0 20px rgba(255, 255, 255, 0.1);
+            --border: 1px solid rgba(255, 255, 255, 0.15);
+            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font);
+            overflow-x: hidden;
+        }
+
+        /* --- STARRY BACKGROUND ANIMATION --- */
+        #star-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            text-align: center;
+            transition: background-image 0.5s ease;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), var(--bg-deep));
+            z-index: 1;
+        }
+
+        .hero-content { z-index: 2; position: relative; }
+
+        .hero h1 {
+            font-size: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            font-weight: 300;
+            text-shadow: 0 0 30px rgba(255,255,255,0.5);
+            margin-bottom: 20px;
+            animation: fadeIn 2s ease;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.9);
+            max-width: 700px;
+            animation: fadeIn 3s ease;
+        }
+
+        /* Background Uploader Button */
+        .bg-uploader {
+            position: absolute;
+            top: 20px; right: 20px; z-index: 10;
+            opacity: 0.5; transition: opacity 0.3s;
+        }
+        .bg-uploader:hover { opacity: 1; }
+        
+        .bg-btn {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            font-size: 2rem;
+            opacity: 0.6;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        h2 {
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        /* --- CONTROLS --- */
+        .controls {
+            background: rgba(255,255,255,0.03);
+            padding: 25px;
+            border-radius: 12px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            box-shadow: var(--glow);
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        input, select, textarea, button {
+            background: #1e1e1e;
+            border: var(--border);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-family: inherit;
+            outline: none;
+        }
+        
+        input:focus, textarea:focus { border-color: white; box-shadow: 0 0 10px rgba(255,255,255,0.1); }
+        input { flex-grow: 1; }
+
+        /* Custom File Input Label */
+        .file-label {
+            background: #2a2a2a;
+            color: #ccc;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-align: center;
+            border: 1px dashed #555;
+            display: inline-block;
+            flex-grow: 1;
+        }
+        .file-label:hover { border-color: white; color: white; }
+
+        button {
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            background: #f0f0f0;
+            color: #000;
+            border: none;
+            transition: 0.3s;
+        }
+        button:hover { background: #fff; box-shadow: 0 0 15px white; transform: translateY(-2px); }
+
+        /* --- GRID CARDS --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--glow);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            background: #000;
+            border-bottom: var(--border);
+        }
+
+        /* Scrollable Gallery for Multiple Images */
+        .gallery {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            height: 300px;
+            background: #000;
+            border-bottom: var(--border);
+        }
+        .gallery img {
+            height: 100%;
+            width: auto;
+            max-width: 100%;
+            object-fit: cover;
+            scroll-snap-align: center;
+            border-right: 1px solid #333;
+        }
+        /* Hide scrollbar for clean look */
+        .gallery::-webkit-scrollbar { height: 6px; }
+        .gallery::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+
+        .card-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title { font-size: 1.3rem; margin-bottom: 5px; color: #fff; font-weight: 600; }
+        .card-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; font-style: italic; }
+        
+        .card-note {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            color: #d0d0d0;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            border-left: 2px solid #fff;
+            flex-grow: 1;
+        }
+
+        .btn-group { display: flex; gap: 10px; margin-top: auto; }
+        .btn-small { padding: 6px 12px; font-size: 0.75rem; background: transparent; color: #fff; border: 1px solid #555; }
+        .btn-small:hover { background: #333; }
+        .btn-del:hover { background: #500; border-color: #f00; }
+
+        /* --- PREVIEW BOX --- */
+        #preview-box {
+            display: none;
+            background: rgba(20, 20, 20, 0.95);
+            padding: 25px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            animation: slideDown 0.3s ease;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+
+        /* --- MODAL --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #151515;
+            padding: 30px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            width: 90%; max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Stars Background -->
+    <canvas id="star-canvas"></canvas>
+
+    <!-- Welcome Section -->
+    <div class="hero" id="heroSection">
+        <div class="bg-uploader">
+            <input type="file" id="heroUploader" accept="image/*" style="display: none;" onchange="updateHeroBackground(this)">
+            <button class="bg-btn" onclick="document.getElementById('heroUploader').click()">
+                📷 Change Background
+            </button>
+        </div>
+        <div class="hero-content">
+            <h1>For The perfect girl and me </h1>
+            <p>Our memories, movies, books, and adventures saved</p>
+        </div>
+        <div class="scroll-indicator" onclick="document.getElementById('library').scrollIntoView({behavior: 'smooth'})">
+            ⌄
+        </div>
+    </div>
+
+    <!-- Media Library -->
+    <div class="container" id="library">
+        <h2>The Collection</h2>
+        <div class="controls">
+            <select id="mediaType" style="flex: 0 0 100px;">
+                <option value="movie">Movie</option>
+                <option value="song">Song (YouTube)</option>
+                <option value="book">Book</option>
+                <option value="poem">Poem</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="Enter title (e.g. Inception)">
+            <button onclick="searchMedia()">Search</button>
+            <label style="display:flex;align-items:center;gap:8px;color:#ccc;margin-left:auto;">
+                <input type="checkbox" id="useLocalSave" style="width:auto;"> Save uploads to local server
+            </label>
+            <button onclick="openImagesModal()" style="margin-left:12px;background:transparent;border:1px solid #555;color:#fff;padding:8px;border-radius:6px;">View Uploaded Images</button>
+        </div>
+
+        <div id="preview-box">
+            <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap;">
+                <div id="preview-img-container"></div>
+                <div style="flex:1; min-width: 200px;">
+                    <h3 id="preview-title" style="color:white; margin-bottom: 5px;"></h3>
+                    <p id="preview-author" style="color:#aaa; font-size:0.9rem;"></p>
+                    <p id="preview-desc" style="color:#777; font-size:0.8rem; margin-top:5px;"></p>
+                    
+                    <div style="margin-top: 10px;">
+                        <label style="font-size: 0.8rem; color: #888;">Use own cover (optional):</label>
+                            <input type="file" id="previewFile" accept="image/*" style="width:100%; margin-top:5px; background: transparent;" onchange="handlePreviewFile(this)">
+                    </div>
+                </div>
+            </div>
+            <textarea id="newNote" placeholder="Add a personal note..." style="width: 100%; height: 80px; margin-top:10px;"></textarea>
+            <div style="margin-top: 15px;">
+                <button onclick="saveToCollection()">Add to Library</button>
+                <button onclick="cancelPreview()" style="background:transparent; color:#aaa; border:1px solid #333;">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Song Player Modal -->
+        <div class="modal" id="songPlayerModal">
+            <div class="modal-content" style="max-width:800px;">
+                <div id="songPlayerContainer" style="width:100%;height:450px;background:#000"></div>
+                <div style="margin-top:12px;text-align:right;"><button onclick="closeSongPlayer()">Close</button></div>
+            </div>
+        </div>
+
+        <div class="grid" id="library-grid"></div>
+    </div>
+
+    <!-- Journal Section (Multiple Images) -->
+    <div class="container" id="journal">
+        <h2>Adventure Journal</h2>
+        <div class="controls">
+            <input type="date" id="advDate" style="flex: 0 0 150px;">
+            <input type="text" id="advTitle" placeholder="Adventure Title" style="flex: 2;">
+            
+            <!-- Multiple File Input -->
+            <div style="flex: 1; min-width: 200px;">
+                <label for="advFiles" class="file-label">📂 Upload Photos (Multiple)</label>
+                <input type="file" id="advFiles" multiple accept="image/*" style="display:none;" onchange="updateFileCount(this)">
+                <span id="fileCount" style="font-size: 0.8rem; color: #888; display: block; text-align: center; margin-top: 5px;"></span>
+                <div id="advPreview" style="display:flex;gap:8px;overflow-x:auto;margin-top:8px;"></div>
+            </div>
+
+            <textarea id="advNote" placeholder="What happened that day?" style="width: 100%; height: 80px; margin-top: 15px;"></textarea>
+            <button onclick="addAdventure()" style="width: 100%; margin-top: 15px;">Save Memory</button>
+        </div>
+
+        <div class="grid" id="journal-grid"></div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h3>Edit Note</h3>
+            <textarea id="editInput" style="width: 100%; height: 150px; margin: 15px 0;"></textarea>
+            <button onclick="saveEdit()">Update</button>
+            <button onclick="closeModal()" style="background:transparent; color: #aaa; border: 1px solid #444;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Images Gallery Modal -->
+    <div class="modal" id="imagesModal">
+        <div class="modal-content">
+            <h3>Uploaded Images</h3>
+            <div id="imagesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px;max-height:60vh;overflow:auto;"></div>
+            <div style="margin-top:12px;text-align:right;">
+                <button onclick="closeImagesModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE & INIT ---
+        let library = [];
+        let journal = [];
+        let tempItem = null;
+        let editId = null;
+        let editType = null;
+
+        // Try to load from server if user chooses local save; otherwise use localStorage fallback
+        async function loadLibrary() {
+            const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+            if(useLocal) {
+                try {
+                    const res = await fetch('/api/library');
+                    if(res.ok) { library = await res.json(); renderLibrary(); return; }
+                } catch(e) { /* fallback below */ }
+            }
+            library = JSON.parse(localStorage.getItem('ourLibrary')) || [];
+            renderLibrary();
+        }
+
+        async function loadJournal() {
+            const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+            if(useLocal) {
+                try {
+                    const res = await fetch('/api/journal');
+                    if(res.ok) { journal = await res.json(); renderJournal(); return; }
+                } catch(e) { /* fallback below */ }
+            }
+            journal = JSON.parse(localStorage.getItem('ourJournal')) || [];
+            renderJournal();
+        }
+
+        // --- 1. HERO BACKGROUND ---
+        function loadHero() {
+            const savedHero = localStorage.getItem('heroImage');
+            const heroSection = document.getElementById('heroSection');
+            if(savedHero) {
+                heroSection.style.backgroundImage = `url('${savedHero}')`;
+            } else {
+                heroSection.style.backgroundImage = `url('background.jpg')`;
+            }
+        }
+        function updateHeroBackground(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+
+                // If user opted to save to local server, POST file to server endpoint
+                if(useLocal) {
+                    const form = new FormData();
+                    form.append('image', file);
+                    fetch('/upload', { method: 'POST', body: form })
+                        .then(res => res.json())
+                        .then(data => {
+                            if(data && data.url) {
+                                document.getElementById('heroSection').style.backgroundImage = `url('${data.url}')`;
+                                try { localStorage.setItem('heroImage', data.url); } catch(err) { /* ignore */ }
+                            } else {
+                                alert('Upload failed, displaying locally.');
+                                readAndShowLocal(file);
+                            }
+                        })
+                        .catch(()=> { alert('Upload failed, displaying locally.'); readAndShowLocal(file); });
+                } else {
+                    readAndShowLocal(file);
+                }
+                function readAndShowLocal(f) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const base64Info = e.target.result;
+                        document.getElementById('heroSection').style.backgroundImage = `url('${base64Info}')`;
+                        try { localStorage.setItem('heroImage', base64Info); } catch(err) { alert("Image too large to save, but displayed temporarily."); }
+                    };
+                    reader.readAsDataURL(f);
+                }
+            }
+        }
+        loadHero();
+
+        // --- 2. STAR ANIMATION ---
+        const canvas = document.getElementById('star-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initStars(); }
+        function initStars() {
+            stars = [];
+            for(let i=0; i<300; i++) {
+                stars.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, radius: Math.random()*1.5, speed: Math.random()*0.2+0.05 });
+            }
+        }
+        function animateStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            stars.forEach(star => {
+                ctx.beginPath(); ctx.arc(star.x, star.y, star.radius, 0, Math.PI*2); ctx.fill();
+                star.y -= star.speed; if(star.y < 0) star.y = canvas.height;
+            });
+            requestAnimationFrame(animateStars);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        animateStars();
+
+        // --- 3. SEARCH (NEW API IMPLEMENTED) ---
+        async function searchMedia() {
+            const type = document.getElementById('mediaType').value;
+            const query = document.getElementById('searchInput').value;
+            if(!query) return alert("Please type a title");
+
+            const pBox = document.getElementById('preview-box');
+            const pTitle = document.getElementById('preview-title');
+            const pDesc = document.getElementById('preview-desc');
+            
+            pBox.style.display = 'block';
+            pTitle.innerText = "Searching...";
+            pDesc.innerText = "";
+            document.getElementById('preview-img-container').innerHTML = "";
+
+            try {
+                // MOVIE SEARCH (Using the "Free Movie API" / IMDb wrapper you requested)
+                if(type === 'movie') {
+                    // This API returns IMDb data without a key
+                    const res = await fetch(`https://imdb.iamidiotareyoutoo.com/search?q=${query}`);
+                    const data = await res.json();
+                    
+                    if (!data.description || data.description.length === 0) throw new Error("Movie not found");
+                    
+                    const item = data.description[0]; // Take the first best match
+                    tempItem = { 
+                        type: 'movie', 
+                        title: item['#TITLE'] || item.l || query, 
+                        subtitle: item['#YEAR'] ? `Year: ${item['#YEAR']}` : 'Movie', 
+                        image: item['#IMG_POSTER'] || item.i?.imageUrl || null, 
+                        desc: item['#ACTORS'] ? `Starring: ${item['#ACTORS']}` : 'No description available.' 
+                    };
+                } 
+                // YOUTUBE SONGS
+                else if(type === 'song') {
+                    try {
+                        const res = await fetch(`/api/search-youtube?q=${encodeURIComponent(query)}`);
+                        if(!res.ok) throw new Error('YouTube search failed');
+                        const results = await res.json();
+                        if(!results || results.length === 0) throw new Error('No songs found');
+                        const first = results[0];
+                        tempItem = {
+                            type: 'song',
+                            title: first.title,
+                            subtitle: first.channel,
+                            image: first.thumbnail,
+                            desc: 'YouTube song',
+                            videoId: first.id
+                        };
+                    } catch(e) { throw e; }
+                }
+                // GOOGLE BOOKS
+                else if(type === 'book') {
+                    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
+                    const data = await res.json();
+                    if(!data.items) throw new Error("Book not found");
+                    const info = data.items[0].volumeInfo;
+                    tempItem = { 
+                        type: 'book', 
+                        title: info.title, 
+                        subtitle: info.authors ? info.authors.join(', ') : 'Unknown', 
+                        image: info.imageLinks?.thumbnail, 
+                        desc: info.description ? info.description.substring(0,100)+'...' : '' 
+                    };
+                }
+                // POETRY DB
+                else if(type === 'poem') {
+                    const res = await fetch(`https://poetrydb.org/title/${query}`);
+                    const data = await res.json();
+                    if(data.status === 404) throw new Error("Poem not found");
+                    tempItem = { 
+                        type: 'poem', 
+                        title: data[0].title, 
+                        subtitle: data[0].author, 
+                        image: null, 
+                        desc: data[0].lines.slice(0,5).join(' ') 
+                    };
+                }
+
+                // Render Preview
+                pTitle.innerText = tempItem.title;
+                document.getElementById('preview-author').innerText = tempItem.subtitle || '';
+                pDesc.innerText = tempItem.desc || '';
+                const imgContainer = document.getElementById('preview-img-container');
+                imgContainer.innerHTML = tempItem.image 
+                    ? `<img src="${tempItem.image}" style="width:100px;border-radius:5px">` 
+                    : '<div style="width:100px;height:140px;background:#333;display:flex;justify-content:center;align-items:center">No Img</div>';
+
+            } catch(e) {
+                pTitle.innerText = "Error";
+                pDesc.innerText = e.message;
+            }
+        }
+
+        // --- 4. ADD TO LIBRARY ---
+        function saveToCollection() {
+            if(!tempItem) return;
+            const fileInput = document.getElementById('previewFile');
+            const note = document.getElementById('newNote').value;
+            const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+
+                const finalize = async (imgSrc) => {
+                const newItem = { id: Date.now(), ...tempItem, image: imgSrc || tempItem.image, note: note };
+                try {
+                    const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+                    if(useLocal) {
+                        // Save to server
+                        const res = await fetch('/api/library', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newItem) });
+                        if(res.ok) {
+                            const saved = await res.json();
+                            library.push(saved);
+                            renderLibrary();
+                            cancelPreview();
+                            return;
+                        }
+                        // fallthrough to local fallback
+                    }
+                    library.push(newItem);
+                    localStorage.setItem('ourLibrary', JSON.stringify(library));
+                    renderLibrary();
+                    cancelPreview();
+                } catch(e) { alert("Storage full! Image too big."); }
+            };
+
+            if(fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                if(useLocal) {
+                    const form = new FormData();
+                    form.append('image', file);
+                    fetch('/upload', { method: 'POST', body: form })
+                        .then(res => res.json())
+                        .then(data => finalize(data.url || null))
+                        .catch(()=> {
+                            alert('Upload failed, saving as local preview.');
+                            const reader = new FileReader();
+                            reader.onload = (e) => finalize(e.target.result);
+                            reader.readAsDataURL(file);
+                        });
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = (e) => finalize(e.target.result);
+                    reader.readAsDataURL(file);
+                }
+            } else { finalize(null); }
+        }
+
+        function cancelPreview() {
+            document.getElementById('preview-box').style.display = 'none';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('newNote').value = '';
+            document.getElementById('previewFile').value = '';
+            tempItem = null;
+        }
+
+        // --- 5. JOURNAL (MULTIPLE IMAGES) ---
+        function updateFileCount(input) {
+            document.getElementById('fileCount').innerText = input.files.length > 0 ? `${input.files.length} photos selected` : '';
+            showAdvPreviews(Array.from(input.files));
+        }
+
+        // Show thumbnails for adventure files; upload to server when `useLocalSave` is checked
+        function showAdvPreviews(files) {
+            const container = document.getElementById('advPreview');
+            container.innerHTML = '';
+            if(!files || files.length === 0) return;
+            const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+            files.forEach(file => {
+                const img = document.createElement('img');
+                img.style.height = '80px'; img.style.borderRadius = '6px'; img.style.objectFit = 'cover'; img.style.background = '#111';
+                container.appendChild(img);
+
+                if(useLocal) {
+                    const form = new FormData(); form.append('image', file);
+                    fetch('/upload', { method: 'POST', body: form })
+                        .then(r => r.json())
+                        .then(d => { if(d && d.url) img.src = d.url; else previewLocal(); })
+                        .catch(()=> previewLocal());
+                } else {
+                    previewLocal();
+                }
+
+                function previewLocal(){
+                    const reader = new FileReader();
+                    reader.onload = (e) => { img.src = e.target.result; };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Handle single-file preview in the search preview box; upload to server when selected
+        function handlePreviewFile(input) {
+            const container = document.getElementById('preview-img-container');
+            container.innerHTML = '';
+            if(!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const img = document.createElement('img'); img.style.width = '100px'; img.style.borderRadius = '5px';
+            container.appendChild(img);
+            const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+            if(useLocal) {
+                const form = new FormData(); form.append('image', file);
+                fetch('/upload', { method: 'POST', body: form })
+                    .then(r=>r.json())
+                    .then(d => { if(d && d.url) img.src = d.url; else previewLocal(); })
+                    .catch(()=> previewLocal());
+            } else previewLocal();
+
+            function previewLocal(){
+                const reader = new FileReader();
+                reader.onload = (e) => img.src = e.target.result;
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function addAdventure() {
+            const title = document.getElementById('advTitle').value;
+            const date = document.getElementById('advDate').value;
+            const note = document.getElementById('advNote').value;
+            const fileInput = document.getElementById('advFiles');
+
+            if(!title || !note) return alert("Title and Note are required!");
+
+            // Read all files
+            const files = Array.from(fileInput.files);
+            let imageList = [];
+            
+            const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+            if(files.length > 0) {
+                try {
+                    if(useLocal) {
+                        // Upload files to local server and collect URLs
+                        const uploads = files.map(f => {
+                            const form = new FormData(); form.append('image', f);
+                            return fetch('/upload', { method: 'POST', body: form }).then(r=>r.json()).then(d=>d.url);
+                        });
+                        imageList = await Promise.all(uploads);
+                    } else {
+                        const promises = files.map(file => {
+                            return new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => resolve(e.target.result);
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                            });
+                        });
+                        imageList = await Promise.all(promises);
+                    }
+                } catch(e) {
+                    alert("Error reading or uploading files");
+                    return;
+                }
+            }
+
+            const memory = {
+                id: Date.now(),
+                date: date || new Date().toISOString().split('T')[0],
+                title: title,
+                text: note,
+                images: imageList // Storing array of images or URLs
+            };
+
+            try {
+                const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+                if(useLocal) {
+                    const res = await fetch('/api/journal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(memory) });
+                    if(res.ok) {
+                        const saved = await res.json();
+                        journal.push(saved);
+                        // Clear UI
+                        document.getElementById('advTitle').value = '';
+                        document.getElementById('advNote').value = '';
+                        document.getElementById('advFiles').value = '';
+                        document.getElementById('fileCount').innerText = '';
+                        renderJournal();
+                        return;
+                    }
+                }
+
+                journal.push(memory);
+                localStorage.setItem('ourJournal', JSON.stringify(journal));
+                // Clear UI
+                document.getElementById('advTitle').value = '';
+                document.getElementById('advNote').value = '';
+                document.getElementById('advFiles').value = '';
+                document.getElementById('fileCount').innerText = '';
+                renderJournal();
+            } catch(e) {
+                alert("Storage full! Too many large photos. Try adding fewer or smaller images.");
+            }
+        }
+
+        // --- 6. RENDER FUNCTIONS ---
+        function renderLibrary() {
+            const grid = document.getElementById('library-grid');
+            grid.innerHTML = '';
+            library.slice().reverse().forEach(item => {
+                let imgHTML = '';
+                if(item.videoId) {
+                    imgHTML = `<div class="card-img" style="height:220px;display:flex;align-items:center;justify-content:center;background:#000"><iframe src="https://www.youtube.com/embed/${item.videoId}" style="width:100%;height:100%;border:0;" allowfullscreen></iframe></div>`;
+                } else if(item.image) {
+                    imgHTML = `<img src="${item.image}" class="card-img" alt="cover">`;
+                } else {
+                    imgHTML = `<div class="card-img" style="display:flex;align-items:center;justify-content:center;font-size:3rem;color:#444">📖</div>`;
+                }
+                
+                grid.innerHTML += `
+                    <div class="card">
+                        ${imgHTML}
+                        <div class="card-content">
+                            <div class="card-title">${item.title}</div>
+                            <div class="card-meta">${item.subtitle || ''}</div>
+                            <div class="card-note">${item.note}</div>
+                            <div class="btn-group">
+                                <button class="btn-small" onclick="openEdit(${item.id}, 'library')">Edit</button>
+                                <button class="btn-small btn-del" onclick="deleteItem(${item.id}, 'library')">Delete</button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderJournal() {
+            const grid = document.getElementById('journal-grid');
+            grid.innerHTML = '';
+            journal.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(item => {
+                
+                // Logic to display single image OR gallery
+                let mediaHTML = '';
+                if(item.videoId) {
+                    mediaHTML = `<div class="gallery" style="height:220px;align-items:center;justify-content:center"><iframe src="https://www.youtube.com/embed/${item.videoId}" style="width:100%;height:100%;border:0;" allowfullscreen></iframe></div>`;
+                } else if(item.images && item.images.length > 0) {
+                    // Multiple Images Gallery
+                    const imgs = item.images.map(src => `<img src="${src}" loading="lazy">`).join('');
+                    mediaHTML = `<div class="gallery">${imgs}</div>`;
+                } else if (item.image) {
+                    // Backward compatibility for single image
+                    mediaHTML = `<img src="${item.image}" class="card-img" style="height:250px;">`;
+                }
+
+                grid.innerHTML += `
+                    <div class="card">
+                        ${mediaHTML}
+                        <div class="card-content">
+                            <div class="card-meta" style="color:#fff;font-weight:bold">${item.date}</div>
+                            <div class="card-title">${item.title}</div>
+                            <div class="card-note" style="background:transparent;padding-left:0;border:none;">${item.text}</div>
+                            <div class="btn-group">
+                                <button class="btn-small" onclick="openEdit(${item.id}, 'journal')">Edit</button>
+                                <button class="btn-small btn-del" onclick="deleteItem(${item.id}, 'journal')">Delete</button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // --- 7. EDIT & DELETE ---
+        function deleteItem(id, type) {
+            if(!confirm("Delete this memory?")) return;
+            const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+            if(useLocal) {
+                if(type === 'library') {
+                    fetch(`/api/library/${id}`, { method: 'DELETE' }).then(()=>{ library = library.filter(i => i.id !== id); renderLibrary(); }).catch(()=>alert('Delete failed'));
+                } else {
+                    fetch(`/api/journal/${id}`, { method: 'DELETE' }).then(()=>{ journal = journal.filter(i => i.id !== id); renderJournal(); }).catch(()=>alert('Delete failed'));
+                }
+            } else {
+                if(type === 'library') {
+                    library = library.filter(i => i.id !== id);
+                    localStorage.setItem('ourLibrary', JSON.stringify(library));
+                    renderLibrary();
+                } else {
+                    journal = journal.filter(i => i.id !== id);
+                    localStorage.setItem('ourJournal', JSON.stringify(journal));
+                    renderJournal();
+                }
+            }
+        }
+
+        function openEdit(id, type) {
+            editId = id; editType = type;
+            const item = type === 'library' ? library.find(i=>i.id===id) : journal.find(i=>i.id===id);
+            document.getElementById('editInput').value = type === 'library' ? item.note : item.text;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function saveEdit() {
+            const val = document.getElementById('editInput').value;
+            const useLocal = document.getElementById('useLocalSave') && document.getElementById('useLocalSave').checked;
+            if(useLocal) {
+                if(editType === 'library') {
+                    fetch(`/api/library/${editId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ note: val }) })
+                        .then(r=>r.json()).then(updated => { const idx = library.findIndex(i=>i.id===editId); if(idx!==-1) library[idx]=updated; renderLibrary(); closeModal(); })
+                        .catch(()=>alert('Update failed'));
+                } else {
+                    fetch(`/api/journal/${editId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ text: val }) })
+                        .then(r=>r.json()).then(updated => { const idx = journal.findIndex(i=>i.id===editId); if(idx!==-1) journal[idx]=updated; renderJournal(); closeModal(); })
+                        .catch(()=>alert('Update failed'));
+                }
+            } else {
+                if(editType === 'library') {
+                    library.find(i=>i.id===editId).note = val;
+                    localStorage.setItem('ourLibrary', JSON.stringify(library));
+                    renderLibrary();
+                } else {
+                    journal.find(i=>i.id===editId).text = val;
+                    localStorage.setItem('ourJournal', JSON.stringify(journal));
+                    renderJournal();
+                }
+                closeModal();
+            }
+        }
+
+        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        // Images modal handlers
+        function openImagesModal() {
+            document.getElementById('imagesModal').style.display = 'flex';
+            loadUploadedImages();
+        }
+        function closeImagesModal() { document.getElementById('imagesModal').style.display = 'none'; }
+
+        async function loadUploadedImages() {
+            const grid = document.getElementById('imagesGrid');
+            grid.innerHTML = 'Loading...';
+            try {
+                const res = await fetch('/api/images');
+                if(!res.ok) throw new Error('Failed');
+                const list = await res.json();
+                if(!Array.isArray(list) || list.length === 0) { grid.innerHTML = '<div style="color:#aaa">No uploaded images found.</div>'; return; }
+                grid.innerHTML = '';
+                list.slice().reverse().forEach(item => {
+                    const a = document.createElement('a'); a.href = item.url; a.target = '_blank';
+                    const img = document.createElement('img');
+                    img.src = item.url; img.style.width = '100%'; img.style.height = '120px'; img.style.objectFit = 'cover'; img.style.borderRadius = '6px';
+                    a.appendChild(img);
+                    const holder = document.createElement('div'); holder.appendChild(a);
+                    grid.appendChild(holder);
+                });
+            } catch(e) {
+                grid.innerHTML = '<div style="color:#faa">Could not load images.</div>';
+            }
+        }
+
+        // Song player modal control
+        function openSongPlayer(id) {
+            const container = document.getElementById('songPlayerContainer');
+            container.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}" style="width:100%;height:100%;border:0;" allowfullscreen></iframe>`;
+            document.getElementById('songPlayerModal').style.display = 'flex';
+        }
+        function closeSongPlayer() { document.getElementById('songPlayerContainer').innerHTML = ''; document.getElementById('songPlayerModal').style.display = 'none'; }
+
+        // Initial Render
+        loadLibrary();
+        loadJournal();
+
+    </script>
+</body>
+</html>
